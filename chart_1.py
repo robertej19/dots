@@ -105,11 +105,13 @@ def create_chart(female_bodyweight=170, male_bodyweight=225):
     # Combine all traces into one figure.
     fig = go.Figure(data=traces + [marker_trace])
     
-    # Transparent background and dark layout.
+    # Set dynamic title and fixed axis ranges.
     fig.update_layout(
-        title="Male Lift Required to Match DOTS Score",
+        title=f"Comparison between {female_bodyweight} lb Female Lifter and {male_bodyweight} lb Male Lifter",
         xaxis_title="Female Lift (lbs)",
         yaxis_title="Male Required Lift (lbs)",
+        xaxis=dict(range=[100, 800]),
+        yaxis=dict(range=[100, 1600]),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         template="plotly_dark"

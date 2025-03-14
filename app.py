@@ -11,7 +11,6 @@ app = dash.Dash(
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1.0"}]
 )
 
-# Define the layout with two sliders for female and male bodyweights.
 app.layout = html.Div(
     style={'padding': '20px'},
     children=[
@@ -24,7 +23,8 @@ app.layout = html.Div(
                 max=400,
                 step=1,
                 value=170,
-                marks={i: str(i) for i in range(100, 401, 50)}
+                marks={i: str(i) for i in range(100, 401, 50)},
+                tooltip={"placement": "bottom", "always_visible": True}
             )
         ], style={'margin-bottom': '20px'}),
         html.Div([
@@ -35,7 +35,8 @@ app.layout = html.Div(
                 max=400,
                 step=1,
                 value=225,
-                marks={i: str(i) for i in range(100, 401, 50)}
+                marks={i: str(i) for i in range(100, 401, 50)},
+                tooltip={"placement": "bottom", "always_visible": True}
             )
         ], style={'margin-bottom': '20px'}),
         dcc.Graph(
