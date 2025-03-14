@@ -29,71 +29,74 @@ def dots_points(bodyweight_lb, weight_lifted_lb, A, B, C, D, E):
     denominator = A * bw_kg**4 + B * bw_kg**3 + C * bw_kg**2 + D * bw_kg + E
     return lifted_kg * 500 / denominator
 
-def female_score(lifted_lb, female_bodyweight):
-    """Compute DOTS score for a female of specified weight."""
-    return dots_points(female_bodyweight, lifted_lb, A_f, B_f, C_f, D_f, E_f)
+def get_dots(lift, bodyweight, gender):
+    """Return DOTS score for a given lift, bodyweight, and gender."""
+    if gender.lower() == 'male':
+        return dots_points(bodyweight, lift, A_m, B_m, C_m, D_m, E_m)
+    else:
+        return dots_points(bodyweight, lift, A_f, B_f, C_f, D_f, E_f)
 
-def male_score(lifted_lb, male_bodyweight):
-    """Compute DOTS score for a male of specified weight."""
-    return dots_points(male_bodyweight, lifted_lb, A_m, B_m, C_m, D_m, E_m)
-
-def male_required(female_lift, female_bodyweight, male_bodyweight):
-    """
-    Given a female lift (in lbs), solve for the male lift (in lbs)
-    that produces the same DOTS score.
-    """
-    target = female_score(female_lift, female_bodyweight)
-    def diff(male_lift):
-        return male_score(male_lift, male_bodyweight) - target
+def get_required_lift(target, bodyweight, gender):
+    """Solve for the required lift that yields the target DOTS score."""
+    def diff(lift):
+        return get_dots(lift, bodyweight, gender) - target
     return brentq(diff, 50, 2000)
 
-def create_chart(female_bodyweight=170, male_bodyweight=225):
+def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
+                 lifter2_bodyweight=225, lifter2_gender='Male'):
     """
-    Create a Plotly figure that shows the required male lift (y-axis) vs.
-    female lift (x-axis), based on the given bodyweights.
+    Create a Plotly figure showing Lifter 2's required lift (y-axis) vs.
+    Lifter 1's lift (x-axis), given each lifter’s bodyweight and gender.
+    All displayed numbers are rounded to whole numbers.
     """
-    # Generate values for the female lift from 100 to 800 lbs (1-lb increments)
-    female_lifts = np.arange(100, 801, 1)
-    male_lifts_equivalent = np.array([male_required(f, female_bodyweight, male_bodyweight)
-                                      for f in female_lifts])
-    dots_values = np.array([female_score(f, female_bodyweight) for f in female_lifts])
+    # Lifter 1 lift values from 100 to 800 lbs.
+    lifts1 = np.arange(100, 801, 1)
+    # Compute DOTS score for Lifter 1 for each lift.
+    dots_values = np.array([get_dots(lift, lifter1_bodyweight, lifter1_gender)
+                             for lift in lifts1])
+    # Compute required Lifter 2 lift for the same DOTS score.
+    required_lifts = np.array([get_required_lift(d, lifter2_bodyweight, lifter2_gender)
+                                for d in dots_values])
     
-    # Create colored line segments for the gradient line.
+    # Round all values to whole numbers.
+    lifts1_round = np.round(lifts1).astype(int)
+    dots_round = np.round(dots_values).astype(int)
+    required_round = np.round(required_lifts).astype(int)
+    
+    # Create colored line segments (gradient based on DOTS score).
     traces = []
-    for i in range(len(female_lifts) - 1):
-        # Endpoints for the segment.
-        xseg = [female_lifts[i], female_lifts[i+1]]
-        yseg = [male_lifts_equivalent[i], male_lifts_equivalent[i+1]]
-        # Average DOTS value for the segment.
-        seg_dots = (dots_values[i] + dots_values[i+1]) / 2.0
-        # Normalize to sample the Viridis colorscale.
-        fraction = (seg_dots - dots_values.min()) / (dots_values.max() - dots_values.min())
+    for i in range(len(lifts1_round) - 1):
+        xseg = [lifts1_round[i], lifts1_round[i+1]]
+        yseg = [required_round[i], required_round[i+1]]
+        avg_dots = (dots_round[i] + dots_round[i+1]) / 2.0
+        # Normalize for the Viridis colorscale.
+        fraction = ((avg_dots - dots_round.min()) /
+                    (dots_round.max() - dots_round.min())
+                    if dots_round.max() > dots_round.min() else 0)
         color = px.colors.sample_colorscale('Viridis', fraction)[0]
-        
         traces.append(go.Scatter(
             x=xseg,
             y=yseg,
             mode='lines',
             line=dict(color=color, width=3),
-            hoverinfo='skip',  # disable hover on line segments
+            hoverinfo='skip',
             showlegend=False
         ))
     
     # Create custom hover text for each data point.
     hover_text = [
-        f"{female_bodyweight} lb woman lifting {f} lbs = {d:.2f} DOTS score<br>"
-        f"{male_bodyweight} lb man needs to lift {m:.2f} lbs for the same score"
-        for f, d, m in zip(female_lifts, dots_values, male_lifts_equivalent)
+        f"Lifter 1: {lifter1_gender} ({lifter1_bodyweight} lb) lifting {lift} lbs = {dots} DOTS score<br>"
+        f"Lifter 2: {lifter2_gender} ({lifter2_bodyweight} lb) needs to lift {req} lbs for the same score"
+        for lift, dots, req in zip(lifts1_round, dots_round, required_round)
     ]
     
-    # Overlay markers for interactive hover labels.
     marker_trace = go.Scatter(
-        x=female_lifts,
-        y=male_lifts_equivalent,
+        x=lifts1_round,
+        y=required_round,
         mode='markers',
         marker=dict(
             size=6,
-            color=dots_values,
+            color=dots_round,
             colorscale='Viridis',
             colorbar=dict(title="DOTS Score")
         ),
@@ -102,14 +105,13 @@ def create_chart(female_bodyweight=170, male_bodyweight=225):
         showlegend=False
     )
     
-    # Combine all traces into one figure.
+    # Build the figure with fixed axis ranges.
     fig = go.Figure(data=traces + [marker_trace])
-    
-    # Set dynamic title and fixed axis ranges.
     fig.update_layout(
-        title=f"Comparison between {female_bodyweight} lb Female Lifter and {male_bodyweight} lb Male Lifter",
-        xaxis_title="Female Lift (lbs)",
-        yaxis_title="Male Required Lift (lbs)",
+        title=f"Comparison between {lifter1_bodyweight} lb {lifter1_gender} Lifter and "
+              f"{lifter2_bodyweight} lb {lifter2_gender} Lifter",
+        xaxis_title="Lifter 1 Lift (lbs)",
+        yaxis_title="Lifter 2 Required Lift (lbs)",
         xaxis=dict(range=[100, 800]),
         yaxis=dict(range=[100, 1600]),
         paper_bgcolor='rgba(0,0,0,0)',
