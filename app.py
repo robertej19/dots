@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html, Input, Output
 import chart_1
 import os
+import plotly.graph_objects as go
 
 # Initialize the Dash app using the DARKLY theme.
 app = dash.Dash(
@@ -70,11 +71,14 @@ app.layout = html.Div(
         dcc.Graph(
             id='dots-chart',
             config={
-                'displayModeBar': True,
-                # Remove zoom & pan buttons to disable zooming
-                'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d']
+                'displayModeBar': False,
+                'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d'],
+                'doubleClick': False,
+                'scrollZoom': False
             }
         )
+
+
     ]
 )
 

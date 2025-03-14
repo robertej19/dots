@@ -110,15 +110,13 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
             'x': 0.5,
             'xanchor': 'center'
         },
-        xaxis_title="Lifter 1 Lift (lbs)",
-        yaxis_title="Lifter 2 Equivalent Lift (lbs)",
-        xaxis=dict(range=[100, 800]),
-        yaxis=dict(range=[100, 1600]),
+        
+        xaxis=dict(range=[100, 800], fixedrange=True, title="Lifter 1 Lift (lbs)"),
+        yaxis=dict(range=[100, 1600], fixedrange=True, title="Lifter 2 Equivalent Lift (lbs)"),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        hoverlabel=dict(bgcolor='rgba(0,0,0,0)'),
-
-        template="plotly_dark"
+        template="plotly_dark",
+        hoverlabel=dict(bgcolor='rgba(0,0,0,0)')
     )
     # Add dotted gray spike lines (vertical and horizontal) on hover.
     fig.update_xaxes(
