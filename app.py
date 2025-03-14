@@ -8,7 +8,7 @@ import os
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.DARKLY],
-    title="DOTSCalculator", 
+    title="Strength Comparison Calculator", 
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1.0"}]
 )
 
@@ -18,58 +18,62 @@ server = app.server
 app.layout = html.Div(
     style={'padding': '20px'},
     children=[
-        html.H1("DOTS Score Comparison", style={'textAlign': 'center'}),
+        html.H1("Strength Comparison Calculator", style={'textAlign': 'center'}),
+        # Lifter 1 Controls (first row)
         html.Div([
-            html.Div([
-                html.Label("Lifter 1:"),
-                dbc.RadioItems(
-                    id='lifter1-gender',
-                    options=[
-                        {"label": "Male", "value": "Male"},
-                        {"label": "Female", "value": "Female"}
-                    ],
-                    value="Female",
-                    inline=True
-                ),
-                html.Br(),
-                html.Label("Weight (lbs):"),
-                dcc.Slider(
-                    id='lifter1-weight-slider',
-                    min=100,
-                    max=400,
-                    step=1,
-                    value=170,
-                    marks={i: str(i) for i in range(100, 401, 50)},
-                    tooltip={"placement": "bottom", "always_visible": True}
-                )
-            ], style={'margin-bottom': '20px', 'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top'}),
-            html.Div([
-                html.Label("Lifter 2:"),
-                dbc.RadioItems(
-                    id='lifter2-gender',
-                    options=[
-                        {"label": "Male", "value": "Male"},
-                        {"label": "Female", "value": "Female"}
-                    ],
-                    value="Male",
-                    inline=True
-                ),
-                html.Br(),
-                html.Label("Weight (lbs):"),
-                dcc.Slider(
-                    id='lifter2-weight-slider',
-                    min=100,
-                    max=400,
-                    step=1,
-                    value=225,
-                    marks={i: str(i) for i in range(100, 401, 50)},
-                    tooltip={"placement": "bottom", "always_visible": True}
-                )
-            ], style={'margin-bottom': '20px', 'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top'})
-        ]),
+            html.Label("Lifter 1:"),
+            dbc.RadioItems(
+                id='lifter1-gender',
+                options=[
+                    {"label": "Male", "value": "Male"},
+                    {"label": "Female", "value": "Female"}
+                ],
+                value="Female",
+                inline=True
+            ),
+            html.Br(),
+            html.Label("Weight (lbs):"),
+            dcc.Slider(
+                id='lifter1-weight-slider',
+                min=100,
+                max=400,
+                step=1,
+                value=170,
+                marks={i: str(i) for i in range(100, 401, 50)},
+                tooltip={"placement": "bottom", "always_visible": True}
+            )
+        ], style={'margin-bottom': '20px'}),
+        # Lifter 2 Controls (second row)
+        html.Div([
+            html.Label("Lifter 2:"),
+            dbc.RadioItems(
+                id='lifter2-gender',
+                options=[
+                    {"label": "Male", "value": "Male"},
+                    {"label": "Female", "value": "Female"}
+                ],
+                value="Male",
+                inline=True
+            ),
+            html.Br(),
+            html.Label("Weight (lbs):"),
+            dcc.Slider(
+                id='lifter2-weight-slider',
+                min=100,
+                max=400,
+                step=1,
+                value=225,
+                marks={i: str(i) for i in range(100, 401, 50)},
+                tooltip={"placement": "bottom", "always_visible": True}
+            )
+        ], style={'margin-bottom': '20px'}),
         dcc.Graph(
             id='dots-chart',
-            config={'displayModeBar': True}
+            config={
+                'displayModeBar': True,
+                # Remove zoom & pan buttons to disable zooming
+                'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d']
+            }
         )
     ]
 )
