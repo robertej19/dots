@@ -1,4 +1,4 @@
-runtime: python310
+runtime: python312
 
 # App Engine will install dependencies from requirements.txt by default.
 # Then it will run the command in 'entrypoint' to start your app.
