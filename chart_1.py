@@ -112,7 +112,7 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
         mode='markers',
         marker=dict(
             size=20,  # Larger marker size for a bigger touch target.
-            color='rgba(255,0,0,1)'  # Nearly transparent so it remains invisible.
+            color='rgba(255,255,0,1)'  # Nearly transparent so it remains invisible.
         ),
         text=hover_text,  # Use the same hover text.
         hovertemplate="%{text}<extra></extra>",
@@ -133,7 +133,7 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
         xaxis=dict(range=[100, 800], fixedrange=True, title="Lifter 1 Lift (lbs)"),
         yaxis=dict(range=[100, 1600], fixedrange=True, title="Lifter 2 Equivalent Lift (lbs)"),
         hoverlabel=dict(bgcolor='rgba(0,0,0,0)'),
-        hoverdistance=50  # Increase hover distance if needed.
+        hoverdistance=500  # Increase hover distance if needed.
     )
     
     # Add spike lines for enhanced hover feedback.
