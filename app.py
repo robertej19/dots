@@ -4,6 +4,8 @@ from dash import dcc, html, Input, Output
 import chart_1
 import os
 import plotly.graph_objects as go
+import plotly.io as pio
+pio.templates.default = "plotly_dark"
 
 # Initialize the Dash app using the DARKLY theme.
 app = dash.Dash(

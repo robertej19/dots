@@ -2,6 +2,8 @@ import numpy as np
 from scipy.optimize import brentq
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.io as pio
+pio.templates.default = "plotly_dark"
 
 lb_to_kg = 0.45359237
 
@@ -41,7 +43,6 @@ def get_required_lift(target, bodyweight, gender):
     def diff(lift):
         return get_dots(lift, bodyweight, gender) - target
     return brentq(diff, 50, 2000)
-
 def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
                  lifter2_bodyweight=225, lifter2_gender='Male'):
     """
@@ -83,10 +84,11 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
     # Custom hover text for markers.
     hover_text = [
         f"{lifter1_bodyweight} lb {lifter1_gender} lifting {lift} lbs = {dots} DOTS<br>"
-        f"{lifter2_bodyweight} lb {lifter2_gender} Equivalent lift  = {req} lbs"
+        f"{lifter2_bodyweight} lb {lifter2_gender} Equivalent lift = {req} lbs"
         for lift, dots, req in zip(lifts1_round, dots_round, required_round)
     ]
     
+    # Visible marker trace.
     marker_trace = go.Scatter(
         x=lifts1_round,
         y=required_round,
@@ -95,50 +97,51 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
             size=6,
             color=dots_round,
             colorscale='Viridis',
-            colorbar=dict(title="DOTS", thickness=10)  # Reduced thickness and title "DOTS"
+            colorbar=dict(title="DOTS", thickness=10)
         ),
         text=hover_text,
         hovertemplate="%{text}<extra></extra>",
         showlegend=False
     )
     
-    # Build the figure with fixed axis ranges.
-    fig = go.Figure(data=traces + [marker_trace])
+    # Invisible hit area trace with larger markers for easier touch.
+    invisible_trace = go.Scatter(
+        x=lifts1_round,
+        y=required_round,
+        mode='markers',
+        marker=dict(
+            size=200,  # Increased size to provide a larger touch target.
+            color='rgba(0,0,0,0.001)',  # Nearly transparent so it stays invisible.
+            line=dict(width=0)
+        ),
+        hoverinfo='skip',  # Disable hover to prevent interference.
+        showlegend=False
+    )
+    
+    # Combine all traces. The invisible trace is added last so that it sits on top.
+    fig = go.Figure(data=traces + [marker_trace, invisible_trace])
     fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        plot_bgcolor="rgba(0, 0, 0, 0)",
         title={
             'text': f"{lifter1_bodyweight} lb {lifter1_gender} Lifter vs. {lifter2_bodyweight} lb {lifter2_gender} Lifter",
             'x': 0.5,
             'xanchor': 'center'
         },
-        
         xaxis=dict(range=[100, 800], fixedrange=True, title="Lifter 1 Lift (lbs)"),
         yaxis=dict(range=[100, 1600], fixedrange=True, title="Lifter 2 Equivalent Lift (lbs)"),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        template="plotly_dark",
         hoverlabel=dict(bgcolor='rgba(0,0,0,0)')
     )
-    # Add dotted gray spike lines (vertical and horizontal) on hover.
+    
+    # Add spike lines (vertical and horizontal) for enhanced hover feedback.
     fig.update_xaxes(
         showspikes=True,
         spikecolor="red",
         spikethickness=-2)
-    #    spikecolor="gray",
-    #    spikethickness=1,
-    #    spikedash="dot",
-    #    spikemode="across",
-    #    spikesnap="cursor"
-    #)
     fig.update_yaxes(
         showspikes=True,
         spikecolor="blue",
         spikethickness=-2)
-    #    spikecolor="gray",
-    #    spikethickness=1,
-    #    spikedash="dot",
-    #    spikemode="across",
-    #    spikesnap="cursor"
-    #)
     
-
     return fig
