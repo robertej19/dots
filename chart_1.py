@@ -50,10 +50,10 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
     """
     Create a Plotly figure showing Lifter 2's required lift (y-axis) vs.
     Lifter 1's lift (x-axis) for the given bodyweights and genders.
-    All numbers are rounded to whole numbers.
+    Calculations are performed in 5-lb increments, but the displayed line appears continuous.
     """
-    # Lifter 1 lifts: 100 to 800 lbs.
-    lifts1 = np.arange(100, 801, 1)
+    # Lifter 1 lifts: 100 to 800 lbs in 5-lb increments.
+    lifts1 = np.arange(100, 801, 5)
     dots_values = np.array([get_dots(lift, lifter1_bodyweight, lifter1_gender)
                              for lift in lifts1])
     required_lifts = np.array([get_required_lift(d, lifter2_bodyweight, lifter2_gender)
@@ -64,7 +64,8 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
     dots_round = np.round(dots_values).astype(int)
     required_round = np.round(required_lifts).astype(int)
     
-    # Build colored line segments.
+    # Build colored line segments for a smooth, continuous line.
+    # Instead of a single trace, we use segments to allow for gradient colors.
     traces = []
     for i in range(len(lifts1_round) - 1):
         xseg = [lifts1_round[i], lifts1_round[i+1]]
@@ -79,7 +80,7 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
             y=yseg,
             mode='lines',
             line=dict(color=color, width=3),
-            hoverinfo='skip',
+            hoverinfo='skip',  # No hover info on the line segments.
             showlegend=False
         ))
     
@@ -90,60 +91,63 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
         for lift, dots, req in zip(lifts1_round, dots_round, required_round)
     ]
     
-    # Visible marker trace without hover info.
-    marker_trace = go.Scatter(
-        x=lifts1_round,
-        y=required_round,
-        mode='markers',
-        marker=dict(
-            size=6,
-            color=dots_round,
-            colorscale='Viridis',
-            colorbar=dict(title="DOTS", thickness=10)
-        ),
-        hoverinfo='none',  # Disable hover on the visible trace.
-        showlegend=False
-    )
-    
-    # Invisible hit area trace with larger markers and active hover.
+    # Invisible hit area trace with larger markers for easier touch detection.
     invisible_trace = go.Scatter(
         x=lifts1_round,
         y=required_round,
         mode='markers',
         marker=dict(
             size=20,  # Larger marker size for a bigger touch target.
-            color='rgba(255,255,0,1)'  # Nearly transparent so it remains invisible.
+            color='rgba(0,0,0,0)',  # Fully transparent.
         ),
-        text=hover_text,  # Use the same hover text.
+        text=hover_text,
         hovertemplate="%{text}<extra></extra>",
         showlegend=False
     )
     
-    # Combine all traces. Adding the invisible trace last ensures it sits on top.
-    fig = go.Figure(data=traces + [marker_trace, invisible_trace])
+    # Combine all traces. The invisible trace is added on top.
+    fig = go.Figure(data=traces + [invisible_trace])
+    
+    # Update layout with increased hover distance and larger fonts.
     fig.update_layout(
         template="plotly_dark",
-        paper_bgcolor="rgba(0, 0, 0, 0)",
-        plot_bgcolor="rgba(0, 0, 0, 0)",
+        font=dict(family="Arial", size=16),
         title={
             'text': f"{lifter1_bodyweight} lb {lifter1_gender} Lifter vs. {lifter2_bodyweight} lb {lifter2_gender} Lifter",
             'x': 0.5,
-            'xanchor': 'center'
+            'xanchor': 'center',
+            'font': {'size': 20}
         },
-        xaxis=dict(range=[100, 800], fixedrange=True, title="Lifter 1 Lift (lbs)"),
-        yaxis=dict(range=[100, 1600], fixedrange=True, title="Lifter 2 Equivalent Lift (lbs)"),
-        hoverlabel=dict(bgcolor='rgba(0,0,0,0)'),
-        hoverdistance=500  # Increase hover distance if needed.
+        xaxis=dict(
+            range=[100, 800],
+            fixedrange=True,
+            title="Lifter 1 Lift (lbs)",
+            title_font=dict(size=16),
+            tickfont=dict(size=14)
+        ),
+        yaxis=dict(
+            range=[100, 1600],
+            fixedrange=True,
+            title="Lifter 2 Equivalent Lift (lbs)",
+            title_font=dict(size=16),
+            tickfont=dict(size=14)
+        ),
+        hoverlabel=dict(bgcolor='rgba(0,0,0,0)', font=dict(size=16)),
+        hoverdistance=300,  # Hover distance increased to 300.
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        plot_bgcolor="rgba(0, 0, 0, 0)"
     )
     
     # Add spike lines for enhanced hover feedback.
     fig.update_xaxes(
         showspikes=True,
         spikecolor="red",
-        spikethickness=-2)
+        spikethickness=-2
+    )
     fig.update_yaxes(
         showspikes=True,
         spikecolor="blue",
-        spikethickness=-2)
+        spikethickness=-2
+    )
     
     return fig
