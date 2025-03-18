@@ -90,14 +90,14 @@ app.layout = html.Div(
     Output('dots-chart', 'figure'),
     [
         Input('dots-chart', 'hoverData'),
+        Input('dots-chart', 'clickData'),
         Input('lifter1-weight-slider', 'value'),
         Input('lifter2-weight-slider', 'value'),
         Input('lifter1-gender', 'value'),
         Input('lifter2-gender', 'value')
     ]
 )
-def update_chart(hoverData, lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender):
-    # Generate the base figure.
+def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender):
     fig = chart_1.create_chart(
         lifter1_bodyweight=lifter1_weight,
         lifter1_gender=lifter1_gender,
@@ -105,30 +105,22 @@ def update_chart(hoverData, lifter1_weight, lifter2_weight, lifter1_gender, lift
         lifter2_gender=lifter2_gender
     )
     
-    # Default annotation text.
-    annotation_text = "Hover over a point to see details."
+    # Use clickData if hoverData is None (common on mobile)
+    eventData = hoverData if hoverData is not None else clickData
     
-    # Debug: Print hoverData to verify data is arriving.
-    #print("hoverData:", hoverData['points'])
-    
-
-    if hoverData is not None and 'points' in hoverData:
+    annotation_text = "Tap a point to see details."  # default text
+    if eventData is not None and 'points' in eventData:
         try:
-            # Use 'customdata' to get the stored hover text.
-            annotation_text = hoverData['points'][0].get('customdata', annotation_text)
-            print(annotation_text)
+            annotation_text = eventData['points'][0].get('customdata', annotation_text)
         except Exception as e:
-            print("Error extracting hover text:", e)
-    else:
-        print("never in points")
+            print("Error extracting annotation text:", e)
     
-    # Update layout with a fixed annotation at 90% of the plot height, centered horizontally.
     fig.update_layout(
         annotations=[dict(
             xref='paper',
             yref='paper',
-            x=0.5,      # Center horizontally.
-            y=0.9,      # 90% of the plot height.
+            x=0.5,
+            y=0.9,
             text=annotation_text,
             showarrow=False,
             font=dict(size=18, color='white'),
