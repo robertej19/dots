@@ -84,22 +84,63 @@ app.layout = html.Div(
     ]
 )
 
+
+
 @app.callback(
     Output('dots-chart', 'figure'),
     [
+        Input('dots-chart', 'hoverData'),
         Input('lifter1-weight-slider', 'value'),
         Input('lifter2-weight-slider', 'value'),
         Input('lifter1-gender', 'value'),
         Input('lifter2-gender', 'value')
     ]
 )
-def update_chart(lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender):
-    return chart_1.create_chart(
+def update_chart(hoverData, lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender):
+    # Generate the base figure.
+    fig = chart_1.create_chart(
         lifter1_bodyweight=lifter1_weight,
         lifter1_gender=lifter1_gender,
         lifter2_bodyweight=lifter2_weight,
         lifter2_gender=lifter2_gender
     )
+    
+    # Default annotation text.
+    annotation_text = "Hover over a point to see details."
+    
+    # Debug: Print hoverData to verify data is arriving.
+    #print("hoverData:", hoverData['points'])
+    
+
+    if hoverData is not None and 'points' in hoverData:
+        try:
+            # Use 'customdata' to get the stored hover text.
+            annotation_text = hoverData['points'][0].get('customdata', annotation_text)
+            print(annotation_text)
+        except Exception as e:
+            print("Error extracting hover text:", e)
+    else:
+        print("never in points")
+    
+    # Update layout with a fixed annotation at 90% of the plot height, centered horizontally.
+    fig.update_layout(
+        annotations=[dict(
+            xref='paper',
+            yref='paper',
+            x=0.5,      # Center horizontally.
+            y=0.9,      # 90% of the plot height.
+            text=annotation_text,
+            showarrow=False,
+            font=dict(size=18, color='white'),
+            bgcolor='rgba(0, 0, 0, 0.5)',
+            bordercolor='white',
+            borderwidth=1,
+            borderpad=4
+        )]
+    )
+    
+    return fig
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))

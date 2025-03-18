@@ -48,9 +48,9 @@ def get_required_lift(target, bodyweight, gender):
 def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
                  lifter2_bodyweight=225, lifter2_gender='Male'):
     """
-    Create a Plotly figure showing Lifter 2's required lift (y-axis) vs.
-    Lifter 1's lift (x-axis) for the given bodyweights and genders.
-    Calculations are performed in 5-lb increments, but the displayed line appears continuous.
+    Create a Plotly figure showing Lifter 2's required lift vs. Lifter 1's lift.
+    Calculations are performed in 5-lb increments, but the line appears continuous.
+    The invisible trace uses customdata for hover text, and its native hover label is suppressed.
     """
     # Lifter 1 lifts: 100 to 800 lbs in 5-lb increments.
     lifts1 = np.arange(100, 801, 5)
@@ -64,8 +64,7 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
     dots_round = np.round(dots_values).astype(int)
     required_round = np.round(required_lifts).astype(int)
     
-    # Build colored line segments for a smooth, continuous line.
-    # Instead of a single trace, we use segments to allow for gradient colors.
+    # Build colored line segments.
     traces = []
     for i in range(len(lifts1_round) - 1):
         xseg = [lifts1_round[i], lifts1_round[i+1]]
@@ -80,35 +79,36 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
             y=yseg,
             mode='lines',
             line=dict(color=color, width=3),
-            hoverinfo='skip',  # No hover info on the line segments.
+            hoverinfo='skip',  # Suppress hover info on these line segments.
             showlegend=False
         ))
     
-    # Create the hover text once.
+    # Prepare hover text for each point.
     hover_text = [
-        f"{lifter1_bodyweight} lb {lifter1_gender} lifting {lift} lbs = {dots} DOTS<br>"
-        f"{lifter2_bodyweight} lb {lifter2_gender} Equivalent lift = {req} lbs"
+        f"{lifter1_bodyweight} lb {lifter1_gender} Lifting {lift} lbs = {dots} DOTS<br>"
+        f"{lifter2_bodyweight} lb {lifter2_gender} Equivalent Lift = {req} lbs"
         for lift, dots, req in zip(lifts1_round, dots_round, required_round)
     ]
     
-    # Invisible hit area trace with larger markers for easier touch detection.
+    # Invisible trace with larger markers that holds customdata.
     invisible_trace = go.Scatter(
         x=lifts1_round,
         y=required_round,
         mode='markers',
         marker=dict(
-            size=20,  # Larger marker size for a bigger touch target.
-            color='rgba(0,0,0,0)',  # Fully transparent.
+            size=20,  # Larger for an easier touch target.
+            color='rgba(0,0,0,0)'  # Fully transparent.
         ),
-        text=hover_text,
-        hovertemplate="%{text}<extra></extra>",
+        customdata=hover_text,  # Store our hover text here.
+        # Set hovertemplate to suppress native hover labels.
+        hovertemplate="<extra></extra>",
         showlegend=False
     )
     
-    # Combine all traces. The invisible trace is added on top.
+    # Combine the traces.
     fig = go.Figure(data=traces + [invisible_trace])
     
-    # Update layout with increased hover distance and larger fonts.
+    # Layout settings with hovermode enabled so hoverData is passed.
     fig.update_layout(
         template="plotly_dark",
         font=dict(family="Arial", size=16),
@@ -133,21 +133,14 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
             tickfont=dict(size=14)
         ),
         hoverlabel=dict(bgcolor='rgba(0,0,0,0)', font=dict(size=16)),
-        hoverdistance=300,  # Hover distance increased to 300.
+        hoverdistance=300,
+        hovermode='closest',  # Enable hover events.
         paper_bgcolor="rgba(0, 0, 0, 0)",
         plot_bgcolor="rgba(0, 0, 0, 0)"
     )
     
-    # Add spike lines for enhanced hover feedback.
-    fig.update_xaxes(
-        showspikes=True,
-        spikecolor="red",
-        spikethickness=-2
-    )
-    fig.update_yaxes(
-        showspikes=True,
-        spikecolor="blue",
-        spikethickness=-2
-    )
+    # Optionally add spike lines.
+    fig.update_xaxes(showspikes=True, spikecolor="red", spikethickness=-2)
+    fig.update_yaxes(showspikes=True, spikecolor="blue", spikethickness=-2)
     
     return fig
