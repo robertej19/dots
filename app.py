@@ -128,7 +128,7 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
     
     # Adjust annotation font size based on screen width.
     if screen_width is not None and screen_width < 1000:
-        annotation_font_size = 4
+        annotation_font_size = 12
     else:
         annotation_font_size = 18
     

@@ -113,7 +113,7 @@ def create_chart(lifter1_bodyweight=170, lifter1_gender='Female',
         template="plotly_dark",
         font=dict(family="Arial", size=16),
         title={
-            'text': f"{lifter1_bodyweight} lb {lifter1_gender} Lifter vs. {lifter2_bodyweight} lb {lifter2_gender} Lifter",
+            'text': f"{lifter1_bodyweight} lb {lifter1_gender} & {lifter2_bodyweight} lb {lifter2_gender}",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20}
