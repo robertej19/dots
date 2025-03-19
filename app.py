@@ -128,7 +128,7 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
 
     # Dynamically scale annotation font size and box width based on screen width
     max_font_size = 18
-    min_font_size = 10
+    min_font_size = 8
     annotation_font_size = max(min_font_size, min(max_font_size, screen_width * 0.02))  # Scale with screen width
 
     max_box_width_px = 400  # Max 400 pixels wide
