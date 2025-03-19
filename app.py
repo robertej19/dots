@@ -116,7 +116,7 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
         lifter2_bodyweight=lifter2_weight,
         lifter2_gender=lifter2_gender
     )
-    
+
     # Use clickData if hoverData is None (common on mobile).
     eventData = hoverData if hoverData is not None else clickData
     annotation_text = "Tap a point to see details."  # default text
@@ -125,31 +125,39 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
             annotation_text = eventData['points'][0].get('customdata', annotation_text)
         except Exception as e:
             print("Error extracting annotation text:", e)
-    
-    # Adjust annotation font size based on screen width.
-    if screen_width is not None and screen_width < 1000:
-        annotation_font_size = 12
-    else:
-        annotation_font_size = 18
-    
+
+    # Dynamically scale annotation font size and box width based on screen width
+    max_font_size = 18
+    min_font_size = 10
+    annotation_font_size = max(min_font_size, min(max_font_size, screen_width * 0.02))  # Scale with screen width
+
+    max_box_width_px = 400  # Max 400 pixels wide
+    min_box_width_px = 150  # Min 150 pixels wide
+    annotation_box_width_px = max(min_box_width_px, min(max_box_width_px, screen_width * 0.4))  # Scale width
+
     # Update layout with a fixed annotation at 90% of the plot height, centered horizontally.
     fig.update_layout(
         annotations=[dict(
             xref='paper',
             yref='paper',
-            x=0.5,
-            y=0.9,
+            x=0.5,  # Centered horizontally
+            y=0.9,  # Near the top
             text=annotation_text,
             showarrow=False,
             font=dict(size=annotation_font_size, color='white'),
             bgcolor='rgba(0, 0, 0, 0.5)',
             bordercolor='white',
             borderwidth=1,
-            borderpad=4
+            borderpad=2,
+            align='center',
+            xanchor='center',
+            width=int(annotation_box_width_px)  # Convert to integer pixels
         )]
     )
     
     return fig
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
