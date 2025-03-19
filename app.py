@@ -17,7 +17,6 @@ app = dash.Dash(
 
 server = app.server
 
-
 app.layout = html.Div(
     style={'padding': '20px'},
     children=[
@@ -78,13 +77,24 @@ app.layout = html.Div(
                 'doubleClick': False,
                 'scrollZoom': False
             }
-        )
-
-
+        ),
+        # Hidden store to hold the screen width.
+        dcc.Store(id='screen-width', data=1024),
+        # Interval component to trigger the clientside callback (runs once on load).
+        dcc.Interval(id='interval-component', interval=1000, n_intervals=0, max_intervals=1)
     ]
 )
 
-
+# Clientside callback to capture the window's innerWidth.
+app.clientside_callback(
+    """
+    function(n_intervals) {
+        return window.innerWidth;
+    }
+    """,
+    Output('screen-width', 'data'),
+    Input('interval-component', 'n_intervals')
+)
 
 @app.callback(
     Output('dots-chart', 'figure'),
@@ -94,10 +104,12 @@ app.layout = html.Div(
         Input('lifter1-weight-slider', 'value'),
         Input('lifter2-weight-slider', 'value'),
         Input('lifter1-gender', 'value'),
-        Input('lifter2-gender', 'value')
+        Input('lifter2-gender', 'value'),
+        Input('screen-width', 'data')
     ]
 )
-def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender):
+def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_gender, lifter2_gender, screen_width):
+    # Generate the base figure.
     fig = chart_1.create_chart(
         lifter1_bodyweight=lifter1_weight,
         lifter1_gender=lifter1_gender,
@@ -105,9 +117,8 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
         lifter2_gender=lifter2_gender
     )
     
-    # Use clickData if hoverData is None (common on mobile)
+    # Use clickData if hoverData is None (common on mobile).
     eventData = hoverData if hoverData is not None else clickData
-    
     annotation_text = "Tap a point to see details."  # default text
     if eventData is not None and 'points' in eventData:
         try:
@@ -115,6 +126,13 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
         except Exception as e:
             print("Error extracting annotation text:", e)
     
+    # Adjust annotation font size based on screen width.
+    if screen_width is not None and screen_width < 768:
+        annotation_font_size = 14
+    else:
+        annotation_font_size = 18
+    
+    # Update layout with a fixed annotation at 90% of the plot height, centered horizontally.
     fig.update_layout(
         annotations=[dict(
             xref='paper',
@@ -123,7 +141,7 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
             y=0.9,
             text=annotation_text,
             showarrow=False,
-            font=dict(size=18, color='white'),
+            font=dict(size=annotation_font_size, color='white'),
             bgcolor='rgba(0, 0, 0, 0.5)',
             bordercolor='white',
             borderwidth=1,
@@ -132,7 +150,6 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
     )
     
     return fig
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
