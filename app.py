@@ -127,8 +127,8 @@ def update_chart(hoverData, clickData, lifter1_weight, lifter2_weight, lifter1_g
             print("Error extracting annotation text:", e)
     
     # Adjust annotation font size based on screen width.
-    if screen_width is not None and screen_width < 768:
-        annotation_font_size = 14
+    if screen_width is not None and screen_width < 1000:
+        annotation_font_size = 4
     else:
         annotation_font_size = 18
     
