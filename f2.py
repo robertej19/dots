@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#test comment
+
 # Conversion factor from pounds to kilograms.
 lb_to_kg = 0.45359237
 
